@@ -1,0 +1,8 @@
+development:
+  adapter: mysql2
+  encoding: utf8
+  pool: 5
+  username: root
+  password: india123
+  database: Stripe
+  timeout: 5000

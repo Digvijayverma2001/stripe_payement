@@ -1,0 +1,127 @@
+<div>
+  <h1>List of products</h1>
+  <%= form_tag({:controller => "orders", :action => "submit" }, {:id => 'order-details'}) do %>
+    <input id="order-type" name="orders[payment_gateway]" type="hidden" value="stripe"></input>
+    <div class="form_row">
+      <h4>Charges/Payments</h4>
+      <% @products_purchase.each do |product| %>
+        <div data-charges-and-payments-section="<%= true %>">
+          <%= radio_button_tag 'orders[product_id]', product.id, @products_purchase.first == product %>
+          <span id="radioButtonName<%= product.id %>"><%= product.name %></span>
+          <span data-price="<%= product.price_cents %>" id="radioButtonPrice<%= product.id %>"><%= product.price_cents%><%= product.price_currency %></span>
+        </div>
+        <br/>
+      <% end %>
+      <h4>Subscriptions</h4>
+      <% @products_subscription.each do |product| %>
+        <div>
+          <%= radio_button_tag 'orders[product_id]', product.id, false %>
+          <span id="radioButtonName<%= product.id %>"><%= product.name%></span>
+          <span data-price="<%= product.price_cents %>" id="radioButtonPrice<%= product.id %>"><%= product.price_cents %> <%= product.price_currency %></span>
+        </div>
+        <br/>
+      <% end %>
+    </div>
+    <hr/>
+    <h1>Payment Method</h1>
+    <div class="form_row">
+      <div>
+        <%= radio_button_tag 'payment-selection', 'stripe', true, onclick: "changeTab();" %>
+        <span>Stripe</span>
+      </div>
+      <div>
+        <%= radio_button_tag 'payment-selection', 'paypal', false, onclick: "changeTab();" %>
+        <span>Paypal</span>
+      </div>
+      <br/>
+    </div>
+    <br/>
+    <br/>
+    <div class="paymentSelectionTab active" id="tab-stripe">
+      <div id="card-element"></div>
+      <div id="card-errors" role="alert"></div>
+      <br/>
+      <br/>
+      <%# binding.pry %>
+      <%= submit_tag "Buy it!", id: "submit-stripe" %>
+    </div>
+    <div class="paymentSelectionTab" id="tab-paypal">
+      <div id="submit-paypal"></div>
+    </div>
+    <br/>
+    <br/>
+    <hr/>
+  <% end %>
+</div>
+<%= stripe_javascript_tag %>
+<script src="https://www.paypal.com/sdk/js?client-id=AXjLx6DqE0CWKBWQEZzDdcvFT0uWOjBeXQnJvyFJzQRJyD2jTOTaNNB6VvhhCemhiZ2C254aCZlPasxi"></script>
+<script>
+  function changeTab() {
+    var newActiveTabID = $('input[name="payment-selection"]:checked').val();
+    $('.paymentSelectionTab').removeClass('active');
+    $('#tab-' + newActiveTabID).addClass('active');
+  }
+(function setupStripe() {
+    //Initialize stripe with publishable key
+    var stripe = Stripe("pk_test_51Mc1TNSBe4z9dRQvIi3yrv5eqQLtSQjHCAOHBt9ASWF12LKeJ94BVVzCx1lSAjv4wNYs8lCPuOnRgW6HL5GcWQAa00JNuaBRYk");
+    //Create Stripe credit card elements.
+    var elements = stripe.elements();
+    var card = elements.create('card');
+    //Add a listener in order to check if
+    card.addEventListener('change', function(event) {
+      //the div card-errors contains error details if any
+      var displayError = document.getElementById('card-errors');
+      document.getElementById('submit-stripe').disabled = false;
+      if (event.error) {
+        // Display error
+        displayError.textContent = event.error.message;
+      } else {
+        // Clear error
+        displayError.textContent = '';
+      }
+    });
+    // Mount Stripe card element in the #card-element div.
+    card.mount('#card-element');
+    var form = document.getElementById('order-details');
+    // This will be called when the #submit-stripe button is clicked by the user.
+    form.addEventListener('submit', function(event) {
+      $('#submit-stripe').prop('disabled', true);
+      event.preventDefault();
+      stripe.createToken(card).then(function(result) {
+        if (result.error) {
+          // Inform that there was an error.
+          var errorElement = document.getElementById('card-errors');
+          errorElement.textContent = result.error.message;
+        } else {
+        // Now we submit the form. We also add a hidden input storing
+    // the token. So our back-end can consume it.
+          var $form = $("#order-details");
+          // Add a hidden input orders[token]
+          $form.append($('<input type="hidden" name="orders[token]"/>').val(result.token.id));
+          // Set order type
+          $('#order-type').val('stripe');
+          $form.submit();
+        }
+      });
+      return false;
+    });
+  }());
+
+</script>
+<style>
+  #card-element {
+    width:500px;
+  }
+  .paymentSelectionTab {
+    display: none;
+  }
+  .paymentSelectionTab.active {
+    display: block !important;
+  }
+</style>
+
+
+
+
+
+

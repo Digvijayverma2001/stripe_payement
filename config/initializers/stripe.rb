@@ -1,0 +1,5 @@
+Rails.application.configure do
+  config.stripe.secret_key = ("sk_test_51MjdzGSI1p2fm0Xv7D3W71a6HUjqLtuuyocSgODGrkR7QUXLu3VcFUfZXRBOa0rNXQsUA58c9vMF79kl1W4dOD3u00ah0dbDk6")
+
+  config.stripe.publishable_key = ("pk_test_51MjdzGSI1p2fm0XvkB5GH4DAmt1RClvURfiqPyz5jHvD0xwlLBwfLTh4nmpqK2FpnDhqGjLDykREHeLVO7dPP3ii00oQvsdvEK")
+end
